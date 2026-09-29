@@ -22,6 +22,6 @@ npm run preview
 - `src/main.jsx` — React application entry point
 - `src/App.jsx` — root React component
 - `src/page.html` — the page's semantic markup
-- `src/styles.css` — responsive design and component styles
+- `src/styles.css` — mobile-first component styles: the base rules are the phone layout, and `min-width` media queries add the tablet and desktop layouts
 - `src/site.js` — navigation, forms, FAQ, and booking-flow behavior
 

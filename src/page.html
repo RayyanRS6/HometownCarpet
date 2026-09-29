@@ -631,8 +631,7 @@
           <summary>How do I book an appointment? <svg class="icon" aria-hidden="true">
               <use href="#i-chev-down" />
             </svg></summary>
-          <div class="faq__answer">Use the <button class="linklike" type="button" data-book
-              style="background:none;border:0;padding:0;font:inherit;color:var(--navy);text-decoration:underline;cursor:pointer">booking
+          <div class="faq__answer">Use the <button class="linklike" type="button" data-book>booking
               form</button> to pick a service, date, and time, or call <a href="tel:+17737883192">(773)
               788-3192</a>. No account required.</div>
         </details>
@@ -714,14 +713,15 @@
           <div class="row2">
             <div class="field">
               <label for="q-name">Name <span class="req" aria-hidden="true">*</span></label>
-              <input type="text" id="q-name" name="name" autocomplete="name" required>
+              <input type="text" id="q-name" name="name" autocomplete="name" autocapitalize="words" enterkeyhint="next"
+                required>
               <p class="error-msg" id="err-q-name" data-show="false"><svg class="icon" aria-hidden="true">
                   <use href="#i-alert" />
                 </svg><span></span></p>
             </div>
             <div class="field">
               <label for="q-phone">Phone Number <span class="req" aria-hidden="true">*</span></label>
-              <input type="tel" id="q-phone" name="phone" inputmode="tel" autocomplete="tel"
+              <input type="tel" id="q-phone" name="phone" inputmode="tel" autocomplete="tel" enterkeyhint="next"
                 placeholder="(773) 788-3192" required>
               <p class="error-msg" id="err-q-phone" data-show="false"><svg class="icon" aria-hidden="true">
                   <use href="#i-alert" />
@@ -731,7 +731,8 @@
 
           <div class="field">
             <label for="q-email">Email <span class="req" aria-hidden="true">*</span></label>
-            <input type="email" id="q-email" name="email" autocomplete="email" required>
+            <input type="email" id="q-email" name="email" autocomplete="email" autocapitalize="none" autocorrect="off"
+              spellcheck="false" enterkeyhint="next" required>
             <p class="error-msg" id="err-q-email" data-show="false"><svg class="icon" aria-hidden="true">
                 <use href="#i-alert" />
               </svg><span></span></p>
@@ -753,7 +754,7 @@
             </div>
             <div class="field">
               <label for="q-count">Number of rooms or items</label>
-              <input type="text" id="q-count" name="count" placeholder="e.g. 3 rooms and a sofa">
+              <input type="text" id="q-count" name="count" enterkeyhint="next" placeholder="e.g. 3 rooms and a sofa">
               <p class="hint">A rough count is fine.</p>
             </div>
           </div>
@@ -863,9 +864,7 @@
             <span>Mon–Sun 8:00 AM – 4:00 PM &nbsp;·&nbsp; Open 7 Days</span>
           </li>
         </ul>
-        <button class="btn btn--primary" type="button" data-book
-          style="margin-top:18px;background:var(--gold);border-color:var(--gold);color:var(--navy-dark)">Book an
-          Appointment</button>
+        <button class="btn btn--gold footer__book" type="button" data-book>Book an Appointment</button>
       </div>
     </div>
 
@@ -936,9 +935,9 @@
     </div>
 
     <ol class="stepbar" id="stepBar">
-      <li data-state="active">1. Service</li>
-      <li data-state="">2. Date &amp; Time</li>
-      <li data-state="">3. Your Details</li>
+      <li data-state="active"><span class="stepbar__num" aria-hidden="true">1</span><span>Service</span></li>
+      <li data-state=""><span class="stepbar__num" aria-hidden="true">2</span><span>Date &amp; Time</span></li>
+      <li data-state=""><span class="stepbar__num" aria-hidden="true">3</span><span>Your Details</span></li>
     </ol>
 
     <div class="modal__body">
@@ -947,7 +946,7 @@
         <h3 class="step-title">Choose Your Service</h3>
         <p class="step-lead">Pick one to start. You can mention anything extra in the details box.</p>
 
-        <div class="choices" role="group" aria-label="Service">
+        <div class="choices choices--stack" role="group" aria-label="Service">
           <label class="choice"><input type="radio" name="service" value="Carpet Cleaning" checked><span><svg
                 class="icon icon--sm" aria-hidden="true">
                 <use href="#i-carpet" />
@@ -962,7 +961,7 @@
               </svg> Upholstery</span></label>
         </div>
 
-        <div id="detailCarpet" style="margin-top:28px">
+        <div id="detailCarpet" class="step-detail">
           <h4 style="margin-bottom:6px">Which rooms or areas are we cleaning?</h4>
           <p class="hint" style="margin-bottom:16px">Choose all that apply and specify counts or steps.</p>
 
@@ -1060,7 +1059,7 @@
                     <button type="button" class="stepper-btn" data-target="qty_stairs" data-dir="-1"
                       aria-label="Decrease steps">−</button>
                     <input type="number" id="qty_stairs" name="qty_stairs" value="13" min="1" max="100"
-                      class="stepper-input">
+                      class="stepper-input" inputmode="numeric" aria-label="Number of steps">
                     <button type="button" class="stepper-btn" data-target="qty_stairs" data-dir="1"
                       aria-label="Increase steps">+</button>
                   </div>
@@ -1070,10 +1069,10 @@
           </div>
         </div>
 
-        <div id="detailRug" style="margin-top:28px" hidden>
+        <div id="detailRug" class="step-detail" hidden>
           <div style="margin-bottom:22px">
             <h4 style="margin-bottom:12px">How many rugs?</h4>
-            <div class="choices" role="group" aria-label="Number of rugs">
+            <div class="choices choices--grid4" role="group" aria-label="Number of rugs">
               <label class="choice"><input type="radio" name="rugs" value="1" checked><span>1</span></label>
               <label class="choice"><input type="radio" name="rugs" value="2"><span>2</span></label>
               <label class="choice"><input type="radio" name="rugs" value="3"><span>3</span></label>
@@ -1083,7 +1082,7 @@
 
           <div style="margin-bottom:22px">
             <h4 style="margin-bottom:12px">Rug Size</h4>
-            <div class="choices" role="group" aria-label="Rug size">
+            <div class="choices choices--grid4" role="group" aria-label="Rug size">
               <label class="choice"><input type="radio" name="rugSize" value="2x4 (Small Accent)"
                   checked><span>2x4</span></label>
               <label class="choice"><input type="radio" name="rugSize"
@@ -1103,15 +1102,14 @@
               <label for="rugSizeOtherInput"
                 style="display:block;font-size:var(--small);font-weight:600;margin-bottom:6px;color:var(--text)">Specify
                 rug dimensions:</label>
-              <input type="text" id="rugSizeOtherInput" class="form-input"
-                style="width:100%;min-height:48px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r-input);font-family:inherit;font-size:16px;"
+              <input type="text" id="rugSizeOtherInput" class="form-input" enterkeyhint="done"
                 placeholder="e.g. 6x9, 10x14, 8ft round…">
             </div>
           </div>
 
           <div style="margin-bottom:12px">
             <h4 style="margin-bottom:12px">Rug Material</h4>
-            <div class="choices" role="group" aria-label="Rug material">
+            <div class="choices choices--stack" role="group" aria-label="Rug material">
               <label class="choice"><input type="radio" name="rugMaterial" value="Synthetic (Nylon / Polyester)"
                   checked><span>Synthetic (Nylon / Polyester)</span></label>
               <label class="choice"><input type="radio" name="rugMaterial"
@@ -1122,14 +1120,13 @@
               <label for="rugMaterialOtherInput"
                 style="display:block;font-size:var(--small);font-weight:600;margin-bottom:6px;color:var(--text)">Specify
                 rug material:</label>
-              <input type="text" id="rugMaterialOtherInput" class="form-input"
-                style="width:100%;min-height:48px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r-input);font-family:inherit;font-size:16px;"
+              <input type="text" id="rugMaterialOtherInput" class="form-input" enterkeyhint="done"
                 placeholder="e.g. Silk, Jute, Cotton, Sisal…">
             </div>
           </div>
         </div>
 
-        <div id="detailSofa" style="margin-top:28px" hidden>
+        <div id="detailSofa" class="step-detail" hidden>
           <h4 style="margin-bottom:6px">Which furniture pieces are we cleaning?</h4>
           <p class="hint" style="margin-bottom:16px">Choose all that apply and adjust the quantity for each.</p>
 
@@ -1252,7 +1249,7 @@
                     <button type="button" class="stepper-btn" data-target="qty_uph_dining_chair" data-dir="-1"
                       aria-label="Decrease dining chairs">−</button>
                     <input type="number" id="qty_uph_dining_chair" name="qty_uph_dining_chair" value="4" min="1"
-                      max="24" class="stepper-input">
+                      max="24" class="stepper-input" inputmode="numeric" aria-label="Number of dining chairs">
                     <button type="button" class="stepper-btn" data-target="qty_uph_dining_chair" data-dir="1"
                       aria-label="Increase dining chairs">+</button>
                   </div>
@@ -1264,7 +1261,7 @@
           <!-- Material & Conditioning Choice -->
           <div style="margin-top:22px;">
             <h4 style="margin-bottom:10px">Material &amp; Care Type</h4>
-            <div class="choices" role="group" aria-label="Upholstery material type">
+            <div class="choices choices--stack" role="group" aria-label="Upholstery material type">
               <label class="choice"><input type="radio" name="uphMaterial" value="Fabric / Microfiber (Deep Clean)"
                   checked><span>Fabric / Microfiber (Deep Clean)</span></label>
               <label class="choice"><input type="radio" name="uphMaterial"
@@ -1276,12 +1273,10 @@
 
       <!-- Step 2: Date &amp; time (§28–29) -->
       <section data-step="2" hidden>
-        <div class="sameday-toggle-bar" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-          <button type="button" id="tabFutureDate" class="btn btn--secondary"
-            style="flex:1;min-height:44px;font-size:15px;border-color:var(--navy);background:var(--navy);color:var(--white);">Schedule
+        <div class="sameday-toggle">
+          <button type="button" id="tabFutureDate" class="btn sameday-toggle__future" aria-pressed="true">Schedule
             for a Future Date</button>
-          <button type="button" id="tabSameDay" class="btn btn--secondary"
-            style="flex:1;min-height:44px;font-size:15px;border-color:var(--gold-dark);color:var(--navy-dark);background:rgba(228,167,44,0.15);font-weight:600;">⚡
+          <button type="button" id="tabSameDay" class="btn sameday-toggle__today" aria-pressed="false">⚡
             Need Same-Day Service (Today)?</button>
         </div>
 
@@ -1316,7 +1311,7 @@
             </div>
           </div>
 
-          <div style="margin-top:32px">
+          <div class="time-section" id="timeSection">
             <h3 class="step-title">Choose a Time</h3>
             <p class="step-lead" id="timeLead">Pick a date first.</p>
             <div class="times" id="timeGrid" role="group" aria-label="Choose an appointment time"></div>
@@ -1328,32 +1323,26 @@
         </div>
 
         <!-- Same Day Phone Callout Container -->
-        <div id="sameDayWrap"
-          style="background:#F4F8FB;border:2px solid var(--gold);border-radius:12px;padding:32px 24px;text-align:center;margin-top:8px;"
-          hidden>
-          <div
-            style="width:60px;height:60px;background:var(--gold);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--navy-dark);margin-bottom:16px;">
-            <svg class="icon icon--lg" aria-hidden="true" style="width:28px;height:28px;">
+        <div id="sameDayWrap" class="sameday-callout" hidden>
+          <div class="sameday-callout__icon">
+            <svg class="icon icon--lg" aria-hidden="true">
               <use href="#i-phone" />
             </svg>
           </div>
-          <h3 style="font-size:var(--h3);color:var(--navy);margin-bottom:8px;">Need Same-Day Cleaning Today?</h3>
-          <p
-            style="font-size:var(--body-lg);color:var(--text);max-width:480px;margin:0 auto 20px auto;line-height:1.5;">
+          <h3>Need Same-Day Cleaning Today?</h3>
+          <p class="sameday-callout__lead">
             For same-day appointments, please call us directly so our dispatch team can check real-time technician
             availability and confirm immediate service.
           </p>
-          <a class="btn btn--primary btn--lg" href="tel:+17737883192"
-            style="background:var(--gold);border-color:var(--gold);color:var(--navy-dark);font-size:18px;font-weight:700;padding:14px 28px;display:inline-flex;align-items:center;gap:10px;">
+          <a class="btn btn--gold sameday-callout__call" href="tel:+17737883192">
             <svg class="icon" aria-hidden="true">
               <use href="#i-phone" />
             </svg>
             Call (773) 788-3192 to Book for Today
           </a>
-          <p style="margin-top:20px;font-size:15px;color:var(--gray-med);">
+          <p class="sameday-callout__alt">
             Looking to schedule for tomorrow or a future date?
-            <button type="button" id="btnBackToFuture"
-              style="background:none;border:0;padding:0;color:var(--navy);font-weight:600;text-decoration:underline;cursor:pointer;">Choose
+            <button type="button" id="btnBackToFuture" class="linklike">Choose
               a future date</button>
           </p>
         </div>
@@ -1368,14 +1357,16 @@
           <div class="row2">
             <div class="field">
               <label for="b-first">First Name <span class="req" aria-hidden="true">*</span></label>
-              <input type="text" id="b-first" autocomplete="given-name" required>
+              <input type="text" id="b-first" name="first_name" autocomplete="given-name" autocapitalize="words"
+                enterkeyhint="next" required>
               <p class="error-msg" id="err-b-first" data-show="false"><svg class="icon" aria-hidden="true">
                   <use href="#i-alert" />
                 </svg><span></span></p>
             </div>
             <div class="field">
               <label for="b-last">Last Name <span class="req" aria-hidden="true">*</span></label>
-              <input type="text" id="b-last" autocomplete="family-name" required>
+              <input type="text" id="b-last" name="last_name" autocomplete="family-name" autocapitalize="words"
+                enterkeyhint="next" required>
               <p class="error-msg" id="err-b-last" data-show="false"><svg class="icon" aria-hidden="true">
                   <use href="#i-alert" />
                 </svg><span></span></p>
@@ -1385,14 +1376,16 @@
           <div class="row2">
             <div class="field">
               <label for="b-phone">Phone Number <span class="req" aria-hidden="true">*</span></label>
-              <input type="tel" id="b-phone" inputmode="tel" autocomplete="tel" placeholder="(773) 788-3192" required>
+              <input type="tel" id="b-phone" name="phone" inputmode="tel" autocomplete="tel" enterkeyhint="next"
+                placeholder="(773) 788-3192" required>
               <p class="error-msg" id="err-b-phone" data-show="false"><svg class="icon" aria-hidden="true">
                   <use href="#i-alert" />
                 </svg><span></span></p>
             </div>
             <div class="field">
               <label for="b-email">Email <span class="req" aria-hidden="true">*</span></label>
-              <input type="email" id="b-email" autocomplete="email" required>
+              <input type="email" id="b-email" name="email" autocomplete="email" autocapitalize="none" autocorrect="off"
+                spellcheck="false" enterkeyhint="next" required>
               <p class="error-msg" id="err-b-email" data-show="false"><svg class="icon" aria-hidden="true">
                   <use href="#i-alert" />
                 </svg><span></span></p>
@@ -1401,8 +1394,8 @@
 
           <div class="field">
             <label for="b-address">Address <span class="req" aria-hidden="true">*</span></label>
-            <input type="text" id="b-address" autocomplete="street-address" placeholder="Street, unit, city, ZIP"
-              required>
+            <input type="text" id="b-address" name="address" autocomplete="street-address" autocapitalize="words"
+              enterkeyhint="next" placeholder="Street, unit, city, ZIP" required>
             <p class="error-msg" id="err-b-address" data-show="false"><svg class="icon" aria-hidden="true">
                 <use href="#i-alert" />
               </svg><span></span></p>
@@ -1410,7 +1403,7 @@
 
           <div class="field">
             <label for="b-notes">Additional Details</label>
-            <textarea id="b-notes" placeholder="Stairs, parking, pets, a stain we should look at…"></textarea>
+            <textarea id="b-notes" name="notes" placeholder="Stairs, parking, pets, a stain we should look at…"></textarea>
             <p class="hint">Optional: anything that helps our technician plan the visit.</p>
           </div>
         </form>

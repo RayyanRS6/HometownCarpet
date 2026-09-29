@@ -89,6 +89,12 @@ export function initializeWebsite() {
   var modalFoot = $('#modalFoot');
   var lastFocus = null;
   var step = 1;
+   // Phones show one thing at a time, so scroll the next part of the booking into view for them.
+  var phoneQuery = window.matchMedia('(max-width: 599px)');
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function reveal(el, block) {
+    el.scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth', block: block || 'nearest' });
+  }
    var state = { service: 'Carpet Cleaning', date: null, time: null, isSameDay: false };
    var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -113,31 +119,9 @@ export function initializeWebsite() {
     var tabFuture = $('#tabFutureDate');
      if (sameWrap) sameWrap.hidden = !isSameDay;
     if (futureWrap) futureWrap.hidden = isSameDay;
-     if (isSameDay) {
-      if (tabSame) {
-        tabSame.style.background = 'var(--gold)';
-        tabSame.style.borderColor = 'var(--gold)';
-        tabSame.style.color = 'var(--navy-dark)';
-      }
-      if (tabFuture) {
-        tabFuture.style.background = 'transparent';
-        tabFuture.style.borderColor = 'var(--navy)';
-        tabFuture.style.color = 'var(--navy)';
-      }
-      if (step === 2) btnNext.hidden = true;
-    } else {
-      if (tabFuture) {
-        tabFuture.style.background = 'var(--navy)';
-        tabFuture.style.borderColor = 'var(--navy)';
-        tabFuture.style.color = 'var(--white)';
-      }
-      if (tabSame) {
-        tabSame.style.background = 'rgba(228,167,44,0.15)';
-        tabSame.style.borderColor = 'var(--gold-dark)';
-        tabSame.style.color = 'var(--navy-dark)';
-      }
-      if (step === 2) btnNext.hidden = false;
-    }
+    if (tabSame) tabSame.setAttribute('aria-pressed', String(isSameDay));
+    if (tabFuture) tabFuture.setAttribute('aria-pressed', String(!isSameDay));
+    if (step === 2) btnNext.hidden = isSameDay;
   }
    var tabSameDayBtn = $('#tabSameDay');
   if (tabSameDayBtn) tabSameDayBtn.addEventListener('click', function () { setSameDayMode(true); });
@@ -183,6 +167,8 @@ export function initializeWebsite() {
             renderCalendar();
             renderTimes();
             $('#err-datetime').setAttribute('data-show', 'false');
+            // The time slots sit below the fold on phones.
+            if (phoneQuery.matches) reveal($('#timeSection'), 'start');
           });
         })(d);
       }
@@ -452,11 +438,13 @@ export function initializeWebsite() {
       if (!state.date) {
         $('span', err).textContent = 'Please choose an appointment date.';
         err.setAttribute('data-show', 'true');
+        reveal(err);
         return;
       }
       if (!state.time) {
         $('span', err).textContent = 'Please choose an appointment time.';
         err.setAttribute('data-show', 'true');
+        reveal(err);
         return;
       }
       err.setAttribute('data-show', 'false');
@@ -536,6 +524,21 @@ export function initializeWebsite() {
   var offerCard = $('#floatingOfferCard');
 
   if (closeOfferBtn && openOfferBtn && offerCard) {
+    // On phones (and short landscape screens) the full card would cover the page, so start
+    // with the small pill, and keep even that out of the way while the hero's Book and Call
+    // buttons are on screen; it slides in once the visitor scrolls past them.
+    var compactOffer = window.matchMedia('(max-width: 767px), (max-height: 500px)');
+    if (compactOffer.matches) {
+      offerCard.hidden = true;
+      openOfferBtn.hidden = false;
+    }
+    var floatingOffer = $('#floatingOffer');
+    var heroCta = $('.hero__cta');
+    if (floatingOffer && heroCta && 'IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        floatingOffer.classList.toggle('is-tucked', compactOffer.matches && entries[0].isIntersecting);
+      }).observe(heroCta);
+    }
     closeOfferBtn.addEventListener('click', function () {
       offerCard.hidden = true;
       openOfferBtn.hidden = false;
