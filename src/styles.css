@@ -2274,8 +2274,8 @@
       inset: 0;
       z-index: 100;
       display: flex;
-      align-items: flex-start;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
       padding: 0;
       overflow-y: auto;
       overscroll-behavior: contain;
@@ -2289,6 +2289,7 @@
 
     .modal__panel {
       position: relative;
+      flex: none;
       width: 100%;
       min-height: 100%;
       margin: 0;
@@ -2299,13 +2300,23 @@
 
     @media (min-width:600px) {
       .modal {
-        padding: 24px;
+        padding: 0 24px;
+      }
+
+      /* The 24px above and below the window comes from spacers, not padding:
+         top/bottom padding on the scroll container would stop the sticky
+         header and footer 24px short of the edges, with the form showing past them. */
+      .modal::before,
+      .modal::after {
+        content: "";
+        flex: none;
+        height: 24px;
       }
 
       .modal__panel {
         max-width: 720px;
         min-height: 0;
-        margin: auto;
+        margin: auto 0;
         border-radius: var(--r-card);
         box-shadow: var(--shadow-modal);
       }
