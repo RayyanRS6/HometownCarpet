@@ -6,8 +6,8 @@
  * /exec URL into SHEET_URL in src/site.js.
  *
  * WhatsApp alerts (optional): add the WhatsApp agent's API key under Project Settings >
- * Script Properties as WHATSAPP_API_KEY (never in this file), message the agent once on
- * WhatsApp, then run connectWhatsApp(). Every new form is then also sent to you there.
+ * Script Properties as WHATSAPP_API_KEY (never in this file), run connectWhatsApp(), and
+ * message the agent on WhatsApp while it runs. Every new form is then also sent to you there.
  */
 
 var WHATSAPP_API = 'https://api.whatsapp.com/agent/v1';
@@ -88,11 +88,13 @@ function reply(obj) {
 /* ---------------- WhatsApp alerts (Meta's WhatsApp Agent Platform API) ---------------- */
 
 // Run once from the editor. An agent can only message its creator, and learns the creator's
-// WhatsApp id from a message they send it, so this waits up to 5 minutes for one.
+// WhatsApp id from a message they send it, so this waits up to 5 minutes for one. Messages sent
+// before it starts aren't delivered to it, so the message has to be sent while it runs.
 function connectWhatsApp() {
   var props = PropertiesService.getScriptProperties();
   var key = props.getProperty('WHATSAPP_API_KEY');
   if (!key) throw new Error('Add WHATSAPP_API_KEY under Project Settings > Script Properties first.');
+  console.log('Listening for 5 minutes. Send your agent a message on WhatsApp now.');
 
   var offset = null;
   var stopAt = Date.now() + 5 * 60 * 1000;
@@ -107,7 +109,11 @@ function connectWhatsApp() {
     var body = JSON.parse(res.getContentText());
     offset = body.next_offset;
     var sender = lastSender(body);
-    if (!sender) continue;
+    if (!sender) {
+      if ((body.entry || []).length) console.log('Got an update with no message from you in it: ' + res.getContentText().slice(0, 500));
+      continue;
+    }
+    console.log('Got a message from ' + sender + '. Replying to confirm…');
 
     // Meta only delivers to the agent's creator, so a successful send also confirms it's you.
     var sent = sendWhatsApp(key, sender, '✅ Connected! New website bookings and quote requests will show up here.');
