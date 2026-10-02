@@ -32,3 +32,5 @@ Both forms post to a Google Sheet through a small Apps Script web app. Paste `go
 
 After editing the script, publish the change with Deploy > Manage deployments > Edit > Version: New version, which keeps the same URL.
 
+The script also sends each new submission as a WhatsApp message through a WhatsApp agent (Meta's WhatsApp Agent Platform API). The agent's API key lives only in the Apps Script project's Script Properties as `WHATSAPP_API_KEY`. After adding it, message the agent once on WhatsApp and run `connectWhatsApp` from the editor; it stores the recipient as `WHATSAPP_USER_ID` and replies "Connected" in WhatsApp. An agent can only message the person who created it.
+
