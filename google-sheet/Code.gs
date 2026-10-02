@@ -5,9 +5,10 @@
  * then deploy it as a Web app (Execute as: Me, Who has access: Anyone) and put the
  * /exec URL into SHEET_URL in src/site.js.
  *
- * WhatsApp alerts (optional): add the WhatsApp agent's API key under Project Settings >
- * Script Properties as WHATSAPP_API_KEY (never in this file), run connectWhatsApp(), and
- * message the agent on WhatsApp while it runs. Every new form is then also sent to you there.
+ * WhatsApp alerts (optional): each person who wants them creates their own WhatsApp agent and
+ * adds its API key under Project Settings > Script Properties (never in this file) as
+ * WHATSAPP_API_KEY, WHATSAPP_API_KEY_2, and so on. Run connectWhatsApp() and have them message
+ * their agent while it runs. Every new form is then sent to everyone connected.
  */
 
 var WHATSAPP_API = 'https://api.whatsapp.com/agent/v1';
@@ -87,68 +88,92 @@ function reply(obj) {
 
 /* ---------------- WhatsApp alerts (Meta's WhatsApp Agent Platform API) ---------------- */
 
-// Run once from the editor. An agent can only message its creator, and learns the creator's
-// WhatsApp id from a message they send it, so this waits up to 5 minutes for one. Messages sent
-// before it starts aren't delivered to it, so the message has to be sent while it runs.
+// An agent can only message its creator, so everyone who wants alerts has their own agent and key.
+// Run this from the editor after adding a key: it connects every WHATSAPP_API_KEY… that isn't
+// connected yet. To reconnect someone, delete their WHATSAPP_USER_ID… property and run it again.
 function connectWhatsApp() {
-  var props = PropertiesService.getScriptProperties();
-  var key = props.getProperty('WHATSAPP_API_KEY');
-  if (!key) throw new Error('Add WHATSAPP_API_KEY under Project Settings > Script Properties first.');
-  console.log('Listening for 5 minutes. Send your agent a message on WhatsApp now.');
+  var contacts = whatsAppContacts();
+  if (!contacts.length) throw new Error('Add WHATSAPP_API_KEY under Project Settings > Script Properties first.');
+  var waiting = contacts.filter(function (c) { return !c.to; });
+  if (!waiting.length) { console.log('Every WhatsApp key is already connected.'); return; }
 
+  var stopAt = Date.now() + 5 * 60 * 1000; // Apps Script stops any run at 6 minutes
+  waiting.forEach(function (contact) { connectContact(contact, stopAt); });
+}
+
+// The agent learns its creator's WhatsApp id from a message they send it. Messages sent before
+// this starts listening aren't delivered to it, so the message has to be sent while it runs.
+function connectContact(contact, stopAt) {
+  console.log('Listening on ' + contact.keyProp + '. Whoever created that agent should send it a message on WhatsApp now.');
   var offset = null;
-  var stopAt = Date.now() + 5 * 60 * 1000;
   while (Date.now() < stopAt) {
+    var started = Date.now();
     var res = UrlFetchApp.fetch(
       WHATSAPP_API + '/updates?timeout=25&limit=100' + (offset == null ? '' : '&offset=' + offset),
-      { headers: { Authorization: 'Bearer ' + key }, muteHttpExceptions: true }
+      { headers: { Authorization: 'Bearer ' + contact.key }, muteHttpExceptions: true }
     );
-    if (res.getResponseCode() === 204) { Utilities.sleep(4000); continue; } // nothing yet; Meta allows 15 polls a minute
-    if (res.getResponseCode() !== 200) throw new Error('WhatsApp replied ' + res.getResponseCode() + ': ' + res.getContentText());
+    if (res.getResponseCode() === 204) {
+      // Nothing yet. A poll normally waits 25 s; only pause if it came back early (Meta allows 15 polls a minute).
+      if (Date.now() - started < 4000) Utilities.sleep(4000);
+      continue;
+    }
+    if (res.getResponseCode() !== 200) throw new Error(contact.keyProp + ': WhatsApp replied ' + res.getResponseCode() + ': ' + res.getContentText());
 
     var body = JSON.parse(res.getContentText());
     offset = body.next_offset;
     var sender = lastSender(body);
     if (!sender) {
-      if ((body.entry || []).length) console.log('Got an update with no message from you in it: ' + res.getContentText().slice(0, 500));
+      if ((body.entry || []).length) console.log('Got an update with no message in it: ' + res.getContentText().slice(0, 500));
       continue;
     }
     console.log('Got a message from ' + sender + '. Replying to confirm…');
 
-    // Meta only delivers to the agent's creator, so a successful send also confirms it's you.
-    var sent = sendWhatsApp(key, sender, '✅ Connected! New website bookings and quote requests will show up here.');
+    // Meta only delivers to the agent's creator, so a successful send also confirms who it is.
+    var sent = UrlFetchApp.fetchAll([whatsAppMessage(contact.key, sender, '✅ Connected! New website bookings and quote requests will show up here.')])[0];
     if (sent.getResponseCode() < 300) {
-      props.setProperty('WHATSAPP_USER_ID', sender);
-      console.log('Connected. Alerts will go to ' + sender + '.');
+      PropertiesService.getScriptProperties().setProperty(contact.idProp, sender);
+      console.log(contact.keyProp + ' is connected. Alerts will go to ' + sender + '.');
       return;
     }
     console.warn('Could not message ' + sender + ': ' + sent.getContentText());
   }
-  throw new Error('No WhatsApp message reached the agent. Send it a message, then run connectWhatsApp again.');
+  throw new Error('No WhatsApp message reached the agent for ' + contact.keyProp + '. Run connectWhatsApp again and send it a message while it runs.');
 }
 
 // Never throws: a WhatsApp problem must not stop the form being saved.
 function notifyWhatsApp(text) {
-  var props = PropertiesService.getScriptProperties();
-  var key = props.getProperty('WHATSAPP_API_KEY');
-  var to = props.getProperty('WHATSAPP_USER_ID');
-  if (!key || !to) return;
+  var contacts = whatsAppContacts().filter(function (c) { return c.to; });
+  if (!contacts.length) return;
   try {
-    var res = sendWhatsApp(key, to, text);
-    if (res.getResponseCode() >= 300) console.error('WhatsApp alert failed: ' + res.getContentText());
+    var results = UrlFetchApp.fetchAll(contacts.map(function (c) { return whatsAppMessage(c.key, c.to, text); }));
+    results.forEach(function (res, i) {
+      if (res.getResponseCode() >= 300) console.error('WhatsApp alert via ' + contacts[i].keyProp + ' failed: ' + res.getContentText());
+    });
   } catch (err) {
     console.error('WhatsApp alert failed: ' + err);
   }
 }
 
-function sendWhatsApp(key, to, text) {
-  return UrlFetchApp.fetch(WHATSAPP_API + '/messages', {
+// Every WHATSAPP_API_KEY… property, paired with the WHATSAPP_USER_ID… it was connected to (null until then).
+function whatsAppContacts() {
+  var all = PropertiesService.getScriptProperties().getProperties();
+  return Object.keys(all).sort()
+    .filter(function (name) { return /^WHATSAPP_API_KEY(_\w+)?$/.test(name) && all[name].trim(); })
+    .map(function (name) {
+      var idProp = name.replace('WHATSAPP_API_KEY', 'WHATSAPP_USER_ID');
+      return { keyProp: name, key: all[name].trim(), idProp: idProp, to: all[idProp] || null };
+    });
+}
+
+function whatsAppMessage(key, to, text) {
+  return {
+    url: WHATSAPP_API + '/messages',
     method: 'post',
     contentType: 'application/json',
     headers: { Authorization: 'Bearer ' + key },
     payload: JSON.stringify({ messaging_product: 'whatsapp', to: to, type: 'text', text: { body: text } }),
     muteHttpExceptions: true
-  });
+  };
 }
 
 // The form's filled-in fields, labelled with the sheet's column names. WhatsApp caps a message at 4096 characters.
