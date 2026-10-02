@@ -24,4 +24,11 @@ npm run preview
 - `src/page.html` — the page's semantic markup
 - `src/styles.css` — mobile-first component styles: the base rules are the phone layout, and `min-width` media queries add the tablet and desktop layouts
 - `src/site.js` — navigation, forms, FAQ, and booking-flow behavior
+- `google-sheet/Code.gs` — Google Apps Script that saves the booking and quote forms into a Google Sheet
+
+## Form submissions
+
+Both forms post to a Google Sheet through a small Apps Script web app. Paste `google-sheet/Code.gs` into the sheet's Extensions > Apps Script editor, run `setup` once, deploy it as a Web app (Execute as: Me, Who has access: Anyone), and put the `/exec` URL into `SHEET_URL` at the top of the Google Sheet section in `src/site.js`. Bookings and quote requests land in their own tabs.
+
+After editing the script, publish the change with Deploy > Manage deployments > Edit > Version: New version, which keeps the same URL.
 

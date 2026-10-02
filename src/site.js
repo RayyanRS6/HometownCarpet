@@ -40,7 +40,7 @@ export function initializeWebsite() {
     var digits = input.value.replace(/\D/g, '');
     if (!input.value.trim()) { showError(input, errId, 'Please enter your phone number.'); return false; }
     if (digits.length < 10 || digits.length > 11) {
-      showError(input, errId, 'Please enter a valid 10-digit phone number, like (773) 788-3192.');
+      showError(input, errId, 'Please enter a valid 10-digit phone number, like (773) 555-0123.');
       return false;
     }
     clearError(input, errId); return true;
@@ -57,12 +57,34 @@ export function initializeWebsite() {
     var bad = $('[aria-invalid="true"]', scope);
     if (bad) bad.focus();
   }
+   /* ---------------- Google Sheet ---------------- */
+  // The Apps Script web app URL (ends in /exec) from google-sheet/Code.gs. While it's empty the
+  // forms only pretend to send, and the booking confirmation says so.
+  var SHEET_URL = 'https://script.google.com/macros/s/AKfycbw2dijPBDTW9bt3axURjnhwtDTOZDsqXOlkjIxiLuVxPNIOr2F9Dppqen2rYDWpwiq9/exec';
+
+  // A plain-text body keeps this a "simple" request, so the browser skips the CORS preflight
+  // that Apps Script can't answer.
+  function sendToSheet(data) {
+    if (!SHEET_URL) {
+      console.warn('SHEET_URL is not set in src/site.js, so this form was not saved.');
+      return new Promise(function (resolve) { window.setTimeout(resolve, 900); });
+    }
+    return fetch(SHEET_URL, { method: 'POST', body: JSON.stringify(data) })
+      .then(function (res) { return res.json(); })
+      .then(function (out) {
+        if (!out.ok) throw new Error(out.error || 'The sheet did not accept the form.');
+      });
+  }
+  $('.demo-note').hidden = Boolean(SHEET_URL);
    /* ---------------- Quote form (§35, §55) ---------------- */
   var quoteForm = $('#quoteForm');
   var quoteSubmit = $('#quoteSubmit');
   var quoteStatus = $('#quoteStatus');
+  var quoteError = $('#quoteError');
    quoteForm.addEventListener('submit', function (e) {
     e.preventDefault();
+    quoteStatus.setAttribute('data-show', 'false');
+    quoteError.setAttribute('data-show', 'false');
     var ok = true;
     ok = validText($('#q-name'), 'err-q-name', 'Please enter your name.') && ok;
     ok = validPhone($('#q-phone'), 'err-q-phone') && ok;
@@ -71,14 +93,27 @@ export function initializeWebsite() {
      if (!ok) { focusFirstInvalid(quoteForm); return; }
      quoteSubmit.disabled = true;
     quoteSubmit.textContent = 'Sending…';
-     // Replace this timeout with a real POST to the quote handler.
-    window.setTimeout(function () {
+     sendToSheet({
+      form: 'quote',
+      name: $('#q-name').value,
+      phone: $('#q-phone').value,
+      email: $('#q-email').value,
+      service: $('#q-service').value,
+      count: $('#q-count').value,
+      date: $('#q-date').value,
+      message: $('#q-message').value
+    }).then(function () {
       quoteStatus.setAttribute('data-show', 'true');
       quoteForm.reset();
+      quoteStatus.scrollIntoView({ block: 'nearest' });
+    }, function (err) {
+      console.error(err);
+      quoteError.setAttribute('data-show', 'true');
+      quoteError.scrollIntoView({ block: 'nearest' });
+    }).then(function () {
       quoteSubmit.disabled = false;
       quoteSubmit.textContent = 'Get My Quote';
-      quoteStatus.scrollIntoView({ block: 'nearest' });
-    }, 900);
+    });
   });
    /* ---------------- Booking modal ---------------- */
   var modal = $('#bookingModal');
@@ -460,20 +495,39 @@ export function initializeWebsite() {
     ok = validEmail($('#b-email'), 'err-b-email') && ok;
     ok = validText($('#b-address'), 'err-b-address', 'Please enter the service address.') && ok;
      if (!ok) { focusFirstInvalid(form); return; }
-     btnNext.disabled = true;
+     var bookingError = $('#err-booking');
+    bookingError.setAttribute('data-show', 'false');
+    btnNext.disabled = true;
     btnBack.disabled = true;
     btnNext.textContent = 'Booking…';
-     // Replace this timeout with a real POST to the scheduling system.
-    window.setTimeout(function () {
+     sendToSheet({
+      form: 'booking',
+      firstName: $('#b-first').value,
+      lastName: $('#b-last').value,
+      phone: $('#b-phone').value,
+      email: $('#b-email').value,
+      address: $('#b-address').value,
+      service: state.service,
+      details: detailText(),
+      date: longDate(state.date) + ', ' + state.date.getFullYear(),
+      time: state.time,
+      notes: $('#b-notes').value
+    }).then(function () {
       $('#cnfService').textContent = state.service;
       $('#cnfDetails').textContent = detailText();
       $('#cnfDate').textContent = longDate(state.date);
       $('#cnfTime').textContent = state.time;
       $('#cnfName').textContent = $('#b-first').value.trim() + ' ' + $('#b-last').value.trim();
-       btnNext.disabled = false;
-      btnBack.disabled = false;
       setStep(4);
-    }, 1000);
+    }, function (err) {
+      console.error(err);
+      btnNext.textContent = 'Confirm Booking';
+      bookingError.setAttribute('data-show', 'true');
+      reveal(bookingError);
+    }).then(function () {
+      btnNext.disabled = false;
+      btnBack.disabled = false;
+    });
   });
    /* ---------------- Open / close ---------------- */
   function openModal(service) {
